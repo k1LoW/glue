@@ -4,12 +4,34 @@ App::import('Core', 'Model');
 App::import('Fixture', 'GluePost');
 App::import('Fixture', 'GluePostGlued');
 App::import('Fixture', 'GluePostGlued2');
+App::import('Fixture', 'GlueUser');
+
+class GlueUser extends CakeTestModel{
+    public $name = 'GlueUser';
+
+    public $actsAs = array('Glue.Glue');
+
+    public $hasMany = array(
+                            'GluePost' => array(
+                                                'className' => 'GluePost',
+                                                'foreignKey' => 'glue_user_id',
+                                                'dependent' => false,
+                                                )
+                            );
+}
 
 class GluePost extends CakeTestModel{
 
     public $name = 'GluePost';
 
     public $actsAs = array('Glue.Glue');
+
+    public $belongsTo = array(
+                              'GlueUser' => array(
+                                                  'className' => 'GlueUser',
+                                                  'foreignKey' => 'glue_user_id',
+                                                  )
+                              );
 
     public $hasGlued = array(
                              'GluePostGlued' => array('class' => 'GluePostGlued'),
@@ -19,16 +41,19 @@ class GluePost extends CakeTestModel{
 
 class GlueTestCase extends CakeTestCase{
 
-    public $fixtures = array('plugin.glue.glue_post',
+    public $fixtures = array('plugin.glue.glue_user',
+                             'plugin.glue.glue_post',
                              'plugin.glue.glue_post_glued',
                              'plugin.glue.glue_post_glued2');
 
     function startTest() {
+        $this->GlueUser = ClassRegistry::init('GlueUser');
         $this->GluePost = ClassRegistry::init('GluePost');
         $this->GluePostFixture = ClassRegistry::init('GluePostFixture');
     }
 
     function endTest() {
+        unset($this->GlueUser);
         unset($this->GluePost);
         unset($this->GluePostFixture);
     }
@@ -47,6 +72,7 @@ class GlueTestCase extends CakeTestCase{
 
         $expected = array(
                           'id' => 1,
+                          'glue_user_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -56,6 +82,29 @@ class GlueTestCase extends CakeTestCase{
                           );
 
         $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindAllGlued
+     *
+     * en:
+     * jpn: GluePost::hasGluedに設定してあるGluePostGluedを強制的にマージする
+     *      また、同名フィールドが存在した場合はGluePostを優先する
+     */
+    function testFindAllGlued(){
+        $result = $this->GluePost->find('all');
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+        $this->assertEqual($result[0]['GluePost'], $expected);
     }
 
     /**
@@ -71,6 +120,7 @@ class GlueTestCase extends CakeTestCase{
 
         $expected = array(
                           'id' => 401,
+                          'glue_user_id' => 401,
                           'title' => 'No Glue',
                           'body' => 'Glue.Glue Test',
                           'body2' => null,
@@ -90,6 +140,7 @@ class GlueTestCase extends CakeTestCase{
      */
     public function testSaveGlued(){
         $data = array(
+                      'glue_user_id' => 1,
                       'title' => 'Glue::save()',
                       'body' => 'Glue.Glue save test',
                       'body2' => 'Glue.Glue save test2',
@@ -121,6 +172,7 @@ class GlueTestCase extends CakeTestCase{
         $before = $this->GluePost->GluePostGlued->find('count');
 
         $data = array(
+                      'glue_user_id' => 1,
                       'title' => 'Glue::save()',
                       'body' => 'Glue.Glue save test',
                       'body2' => 'Glue.Glue save test2',
@@ -159,6 +211,7 @@ class GlueTestCase extends CakeTestCase{
 
         $expected = array(
                           'id' => 1,
+                          'glue_user_id' => 1,
                           'title' => 'Title',
                           'body' => 'Update',
                           'body2' => 'Update2',
@@ -190,5 +243,30 @@ class GlueTestCase extends CakeTestCase{
 
         $after = $this->GluePost->GluePostGlued->find('count');
         $this->assertIdentical($after, $before);
+    }
+
+    /**
+     * testParentFindHasManySupport
+     *
+     * en:
+     * jpn: hasManyでもGlueが発動する
+     */
+    public function testParentFindHasManySupport(){
+        $query = array();
+        $query['conditions'] = array('GlueUser.id' => 1);
+        $result = $this->GlueUser->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+
+        $this->assertEqual($result['GluePost'][0], $expected);
     }
 }

@@ -27,10 +27,19 @@ class GlueBehavior extends ModelBehavior {
                 $model->hasGlued[$gluedModelName]['foreignKey'] = $foreignKey;
             }
             $model->bindModel(array('hasOne' => array(
-                                                            $gluedModelName => $params
-                                                            ))
-                                    , false);
+                                                      $gluedModelName => $params
+                                                      ))
+                              , false);
         }
+    }
+
+    /**
+     * beforeFind
+     *
+     * @param &$model, $data
+     */
+    public function beforeFind(&$model, $query){
+        return $query;
     }
 
     /**
@@ -39,16 +48,41 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $results
      */
     public function afterFind(&$model, $results){
-        foreach ($results as $key => $value) {
-            foreach ($model->hasGlued as $gluedModelName => $params) {
-                if (!empty($value[$model->alias]) && !empty($value[$gluedModelName])) {
-                    unset($value[$gluedModelName][$model->primaryKey]);
-                    unset($value[$gluedModelName][$params['foreignKey']]);
-                    unset($value[$gluedModelName]['created']);
-                    unset($value[$gluedModelName]['modified']);
-                    // give priority to master model fields
-                    $results[$key][$model->alias] = Set::merge($value[$gluedModelName],$results[$key][$model->alias]);
-                    unset($results[$key][$gluedModelName]);
+        return $this->glueAfterFind($model, $results);
+    }
+
+    /**
+     * glueAfterFind
+     *
+     * @param &$model, $results
+     */
+    public function glueAfterFind(&$model, $results){
+        if (isset($model->hasGlued)) {
+            foreach ($results as $key => $value) {
+                foreach ($model->hasGlued as $gluedModelName => $params) {
+                    if (!empty($value[$model->alias]) && !empty($value[$gluedModelName])) {
+                        unset($value[$gluedModelName][$model->primaryKey]);
+                        unset($value[$gluedModelName][$params['foreignKey']]);
+                        unset($value[$gluedModelName]['created']);
+                        unset($value[$gluedModelName]['modified']);
+                        // give priority to master model fields
+                        $results[$key][$model->alias] = Set::merge($value[$gluedModelName],$results[$key][$model->alias]);
+                        unset($results[$key][$gluedModelName]);
+                    }
+                }
+            }
+        }
+        if (isset($model->hasMany)) {
+            foreach ($model->hasMany as $modelName => $params) {
+                if (isset($model->{$modelName}->hasGlued)) {
+                    foreach ($results as $key => $value) {
+                        if (empty($results[$key][$modelName])) {
+                            continue;
+                        }
+                        $ids = Set::extract('/' . $model->{$modelName}->primaryKey, $results[$key][$modelName]);
+                        $gluedResults = $model->{$modelName}->find('all', array('conditions' => array($model->{$modelName}->alias . '.' . $model->{$modelName}->primaryKey => $ids)));
+                        $results[$key][$modelName] = Set::extract('/' . $model->{$modelName}->alias . '/.', $gluedResults);
+                    }
                 }
             }
         }
@@ -61,6 +95,9 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $created
      */
     public function afterSave(&$model, $created){
+        if (!isset($model->hasGlued)) {
+            return;
+        }
         if ($created) {
             $id = $model->getLastInsertId();
         } else {
