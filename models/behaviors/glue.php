@@ -119,10 +119,12 @@ class GlueBehavior extends ModelBehavior {
             $current = $model->{$gluedModelName}->find('first', array('conditions' => array($gluedModelName . '.' . $params['foreignKey'] => $id)));
             if ($current) {
                 $data = Set::merge($current, $data);
+                unset($data[$gluedModelName]['modified']);
+                unset($data[$gluedModelName]['created']);
+            } else {
+                $model->{$gluedModelName}->create($data);
             }
 
-            $model->{$gluedModelName}->create();
-            $model->{$gluedModelName}->set($data);
             $model->{$gluedModelName}->save($data);
         }
     }
