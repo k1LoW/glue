@@ -63,7 +63,8 @@ class GlueTestCase extends CakeTestCase{
      *
      * en:
      * jpn: GluePost::hasGluedに設定してあるGluePostGluedを強制的にマージする
-     *      また、同名フィールドが存在した場合はGluePostを優先する
+     *      同名フィールドが存在した場合はGluePostを優先する
+     *      hasGluedに設定してあるモデルに同名フィールドが存在した場合は最初に設定してあるほうを優先する
      */
     function testFindGlued(){
         $query = array();
