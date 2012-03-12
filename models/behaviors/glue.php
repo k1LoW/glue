@@ -39,7 +39,7 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $data
      */
     public function beforeFind(&$model, $query){
-        if (!isset($model->hasGlued)) {
+        if (!isset($model->hasGlued) || empty($query['fields'])) {
             return $query;
         }
         $schema = $model->_schema;
