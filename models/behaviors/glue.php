@@ -39,6 +39,26 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $data
      */
     public function beforeFind(&$model, $query){
+        if (!isset($model->hasGlued)) {
+            return $query;
+        }
+        $schema = $model->_schema;
+
+        foreach ($query['fields'] as $key => $field) {
+            if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
+                && !in_array($field, array_keys($schema))) {
+                unset($query['fields'][$key]);
+                foreach ($model->hasGlued as $gluedModelName => $params) {
+                    $gluedSchema = $model->{$gluedModelName}->_schema;
+                    if (in_array(preg_replace('/^' . $model->alias . '\./' , '', $field), array_keys($gluedSchema))
+                        || in_array($field, array_keys($gluedSchema))) {
+                        $query['fields'][] = $gluedModelName . '.' . $params['foreignKey'];
+                        $query['fields'][] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
+                    }
+                }
+            }
+        }
+
         return $query;
     }
 
@@ -111,14 +131,14 @@ class GlueBehavior extends ModelBehavior {
             $id = $model->data[$model->alias][$model->primaryKey];
         }
         foreach ($model->hasGlued as $gluedModelName => $params) {
-            $schema = $model->{$gluedModelName}->_schema;
-            unset($schema[$model->{$gluedModelName}->primaryKey]);
-            unset($schema['created']);
-            unset($schema['modified']);
+            $gluedSchema = $model->{$gluedModelName}->_schema;
+            unset($gluedSchema[$model->{$gluedModelName}->primaryKey]);
+            unset($gluedSchema['created']);
+            unset($gluedSchema['modified']);
             $data = array();
             $data[$gluedModelName] = array();
             foreach ($model->data[$model->alias] as $key => $value) {
-                if (in_array($key, array_keys($schema))) {
+                if (in_array($key, array_keys($gluedSchema))) {
                     $data[$gluedModelName][$key] = $value;
                 }
             }

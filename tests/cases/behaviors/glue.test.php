@@ -164,6 +164,54 @@ class GlueTestCase extends CakeTestCase{
     }
 
     /**
+     * testFindField
+     *
+     * en:
+     * jpn: field指定ができる
+     */
+    function testFindField(){
+        $query = array();
+        $query['fields'] = array('GluePost.id',
+                                 'GluePost.title',
+                                 'GluePost.body',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindGluedField
+     *
+     * en:
+     * jpn: GluePost::hasGluedに設定してあるモデルのfieldを自分のfieldのように指定できる
+     */
+    function testFindGluedField(){
+        $query = array();
+        $query['fields'] = array('GluePost.id',
+                                 'GluePost.body2',
+                                 'GluePost.title',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'title' => 'Title',
+                          'body2' => 'Glued',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
      * testSaveGlued
      *
      * en:
