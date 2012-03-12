@@ -80,8 +80,15 @@ class GlueBehavior extends ModelBehavior {
                             continue;
                         }
                         $ids = Set::extract('/' . $model->{$modelName}->primaryKey, $results[$key][$modelName]);
-                        $gluedResults = $model->{$modelName}->find('all', array('conditions' => array($model->{$modelName}->alias . '.' . $model->{$modelName}->primaryKey => $ids)));
-                        $results[$key][$modelName] = Set::extract('/' . $model->{$modelName}->alias . '/.', $gluedResults);
+                        $gluedResults = $model->{$modelName}->find('all', array('conditions' => array($model->{$modelName}->alias . '.' . $model->{$modelName}->primaryKey => $ids),
+                                                                                'recursive' => 0));
+                        $gluedResults = Set::extract('/' . $model->{$modelName}->alias . '/.', $gluedResults);
+                        $results[$key][$modelName] = Set::merge($gluedResults, $results[$key][$modelName]);
+                        foreach ($model->{$modelName}->hasGlued as $gluedModelName => $params2) {
+                            foreach ($results[$key][$modelName] as $key2 => $value2) {
+                                unset($results[$key][$modelName][$key2][$gluedModelName]);
+                            }
+                        }
                     }
                 }
             }

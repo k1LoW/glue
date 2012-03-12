@@ -1,5 +1,4 @@
 <?php
-
 App::import('Core', 'Model');
 App::import('Fixture', 'GluePost');
 App::import('Fixture', 'GluePostGlued');
@@ -310,6 +309,31 @@ class GlueTestCase extends CakeTestCase{
      */
     public function testParentFindHasManySupport2(){
         $query = array();
+        $query['conditions'] = array('GlueUser.id' => 1);
+        $result = $this->GlueUser->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+
+        $this->assertEqual($result['GluePost'][0], $expected);
+    }
+
+    /**
+     * testParentFindHasManySupport3
+     *
+     * en:
+     * jpn: hasManyでもGlueが発動する。またrecursiveが深く付与されたデータはそのまま表示される
+     */
+    public function testParentFindHasManySupport3(){
+        $query = array();
         $query['recursive'] = 2;
         $query['conditions'] = array('GlueUser.id' => 1);
         $result = $this->GlueUser->find('first', $query);
@@ -323,6 +347,21 @@ class GlueTestCase extends CakeTestCase{
                           'body3' => 'Glued2',
                           'created' => '2011-08-23 17:44:58',
                           'modified' => '2011-08-23 12:05:02',
+
+                          'GluePostHasOne' => array(
+                                                    'id' => 1,
+                                                    'glue_post_id' => 1,
+                                                    'comment' => 'HasOne Comment',
+                                                    'created' => '2011-08-23 17:44:58',
+                                                    'modified' => '2011-08-23 12:05:02'
+                                                    ),
+                          'GlueUser' => array(
+                                              'id' => 1,
+                                              'username' => 'k1LoW',
+                                              'password' => 'password',
+                                              'created' => '2011-08-23 17:44:58',
+                                              'modified' => '2011-08-23 12:05:02'
+                                              ),
                           );
 
         $this->assertEqual($result['GluePost'][0], $expected);
