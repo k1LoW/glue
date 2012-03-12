@@ -1,6 +1,8 @@
 <?php
 class GlueBehavior extends ModelBehavior {
 
+    private $forceSetPrimaryKey;
+
     /**
      * setUp
      *
@@ -39,21 +41,28 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $data
      */
     public function beforeFind(&$model, $query){
+        $this->forceSetPrimaryKey = false;
         if (!isset($model->hasGlued) || empty($query['fields'])) {
             return $query;
         }
         $schema = $model->_schema;
-
         foreach ($query['fields'] as $key => $field) {
             if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
                 && !in_array($field, array_keys($schema))) {
-                unset($query['fields'][$key]);
+
+                if (!in_array($model->alias . '.' . $model->primaryKey, $query['fields'])
+                    && !in_array($model->alias . '.' . $model->primaryKey, $query['fields'])) {
+                    $query['fields'][] = $model->alias . '.' . $model->primaryKey;
+                    $this->forceSetPrimaryKey = true;
+                }
+
                 foreach ($model->hasGlued as $gluedModelName => $params) {
                     $gluedSchema = $model->{$gluedModelName}->_schema;
                     if (in_array(preg_replace('/^' . $model->alias . '\./' , '', $field), array_keys($gluedSchema))
                         || in_array($field, array_keys($gluedSchema))) {
                         $query['fields'][] = $gluedModelName . '.' . $params['foreignKey'];
                         $query['fields'][] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
+                        unset($query['fields'][$key]);
                     }
                 }
             }
@@ -77,6 +86,9 @@ class GlueBehavior extends ModelBehavior {
      * @param &$model, $results
      */
     public function glueAfterFind(&$model, $results){
+        if (!$results) {
+            return $results;
+        }
         if (isset($model->hasGlued)) {
             foreach ($results as $key => $value) {
                 foreach ($model->hasGlued as $gluedModelName => $params) {
@@ -87,6 +99,11 @@ class GlueBehavior extends ModelBehavior {
                         unset($value[$gluedModelName]['modified']);
                         // give priority to master model fields
                         $results[$key][$model->alias] = Set::merge($value[$gluedModelName],$results[$key][$model->alias]);
+
+                        if($this->forceSetPrimaryKey) {
+                            unset($results[$key][$model->alias][$model->primaryKey]);
+                        }
+
                         unset($results[$key][$gluedModelName]);
                     }
                 }

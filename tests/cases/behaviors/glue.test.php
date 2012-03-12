@@ -188,6 +188,27 @@ class GlueTestCase extends CakeTestCase{
     }
 
     /**
+     * testFindField2
+     *
+     * en:
+     * jpn: field指定ができる
+     */
+    function testFindField2(){
+        $query = array();
+        $query['fields'] = array(
+                                 'GluePost.body',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'body' => 'Glue.Glue Test',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
      * testFindGluedField
      *
      * en:
@@ -209,6 +230,43 @@ class GlueTestCase extends CakeTestCase{
                           );
 
         $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindGluedField2
+     *
+     * en:
+     * jpn: GluePost::hasGluedに設定してあるモデルのfieldを自分のfieldのように指定できる
+     */
+    function testFindGluedField2(){
+        $query = array();
+        $query['fields'] = array(
+                                 'GluePost.body2',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'body2' => 'Glued',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindUnknownField
+     *
+     * en:
+     * jpn: どこにも存在しないfiledはエラー
+     */
+    function testFindUnknownField(){
+        $query = array();
+        $query['fields'] = array('GluePost.id',
+                                 'GluePost.title',
+                                 'GluePost.invalid',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        // $result = $this->GluePost->find('first', $query); // Unexpected PHP error
     }
 
     /**
