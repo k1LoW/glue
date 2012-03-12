@@ -33,6 +33,14 @@ class GluePost extends CakeTestModel{
                                                   )
                               );
 
+    public $hasOne = array(
+                           'GluePostHasOne' => array(
+                                                     'className' => 'GluePostHasOne',
+                                                     'foreignKey' => 'glue_post_id',
+                                                     'dependent' => false,
+                                                     )
+                           );
+
     public $hasGlued = array(
                              'GluePostGlued' => array('class' => 'GluePostGlued'),
                              'GluePostGlued2' => array('class' => 'GluePostGlued2'),
@@ -43,6 +51,7 @@ class GlueTestCase extends CakeTestCase{
 
     public $fixtures = array('plugin.glue.glue_user',
                              'plugin.glue.glue_post',
+                             'plugin.glue.glue_post_has_one',
                              'plugin.glue.glue_post_glued',
                              'plugin.glue.glue_post_glued2');
 
@@ -83,6 +92,28 @@ class GlueTestCase extends CakeTestCase{
                           );
 
         $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindHasOne
+     *
+     * en:
+     * jpn: GluePost::hasOneに設定してあるデータは問題なく取得できている
+     */
+    function testFindHasOne(){
+        $query = array();
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_post_id' => 1,
+                          'comment' => 'HasOne Comment',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02'
+                          );
+
+        $this->assertEqual($result['GluePostHasOne'], $expected);
     }
 
     /**
@@ -254,6 +285,32 @@ class GlueTestCase extends CakeTestCase{
      */
     public function testParentFindHasManySupport(){
         $query = array();
+        $query['conditions'] = array('GlueUser.id' => 1);
+        $result = $this->GlueUser->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+
+        $this->assertEqual($result['GluePost'][0], $expected);
+    }
+
+    /**
+     * testParentFindHasManySupport2
+     *
+     * en:
+     * jpn: hasManyでもGlueが発動する
+     */
+    public function testParentFindHasManySupport2(){
+        $query = array();
+        $query['recursive'] = 2;
         $query['conditions'] = array('GlueUser.id' => 1);
         $result = $this->GlueUser->find('first', $query);
 
