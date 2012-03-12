@@ -46,13 +46,14 @@ class GlueBehavior extends ModelBehavior {
             return $query;
         }
         $schema = $model->_schema;
+        $addFields = array();
         foreach ($query['fields'] as $key => $field) {
             if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
                 && !in_array($field, array_keys($schema))) {
 
                 if (!in_array($model->primaryKey, $query['fields'])
                     && !in_array($model->alias . '.' . $model->primaryKey, $query['fields'])) {
-                    $query['fields'][] = $model->alias . '.' . $model->primaryKey;
+                    $addFields[] = $model->alias . '.' . $model->primaryKey;
                     $this->forceSetPrimaryKey = true;
                 }
 
@@ -60,13 +61,14 @@ class GlueBehavior extends ModelBehavior {
                     $gluedSchema = $model->{$gluedModelName}->_schema;
                     if (in_array(preg_replace('/^' . $model->alias . '\./' , '', $field), array_keys($gluedSchema))
                         || in_array($field, array_keys($gluedSchema))) {
-                        $query['fields'][] = $gluedModelName . '.' . $params['foreignKey'];
-                        $query['fields'][] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
+                        $addFields[] = $gluedModelName . '.' . $params['foreignKey'];
+                        $addFields[] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
                         unset($query['fields'][$key]);
                     }
                 }
             }
         }
+        $query['fields'] = array_merge($addFields, $query['fields']);
 
         return $query;
     }
