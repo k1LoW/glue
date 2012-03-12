@@ -50,7 +50,7 @@ class GlueBehavior extends ModelBehavior {
             if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
                 && !in_array($field, array_keys($schema))) {
 
-                if (!in_array($model->alias . '.' . $model->primaryKey, $query['fields'])
+                if (!in_array($model->primaryKey, $query['fields'])
                     && !in_array($model->alias . '.' . $model->primaryKey, $query['fields'])) {
                     $query['fields'][] = $model->alias . '.' . $model->primaryKey;
                     $this->forceSetPrimaryKey = true;

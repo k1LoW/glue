@@ -257,7 +257,7 @@ class GlueTestCase extends CakeTestCase{
      * testFindUnknownField
      *
      * en:
-     * jpn: どこにも存在しないfiledはエラー
+     * jpn: どこにも存在しないfieldはエラー
      */
     function testFindUnknownField(){
         $query = array();
