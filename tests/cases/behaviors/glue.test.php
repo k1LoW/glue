@@ -185,6 +185,22 @@ class GlueTestCase extends CakeTestCase{
                           );
 
         $this->assertEqual($result['GluePost'], $expected);
+
+        $query = array();
+        $query['fields'] = array('id',
+                                 'GluePost.title',
+                                 'GluePost.body',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1);
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
     }
 
     /**
