@@ -111,6 +111,27 @@ class GlueBehavior extends ModelBehavior {
                 }
             }
         }
+        // hasOne support
+        if (isset($model->hasOne)) {
+            foreach ($model->hasOne as $modelName => $params) {
+                if (isset($model->{$modelName}->hasGlued)) {
+                    foreach ($results as $key => $value) {
+                        if (empty($results[$key][$modelName])) {
+                            continue;
+                        }
+                        $ids = Set::extract('/' . $model->{$modelName}->primaryKey, $results[$key][$modelName]);
+                        $gluedResults = $model->{$modelName}->find('first', array('conditions' => array($model->{$modelName}->alias . '.' . $model->{$modelName}->primaryKey => $ids),
+                                                                                'recursive' => 0));
+                        $gluedResults = Set::extract('/' . $model->{$modelName}->alias . '/.', $gluedResults);
+                        $results[$key][$modelName] = Set::merge($gluedResults[0], $results[$key][$modelName]);
+                        foreach ($model->{$modelName}->hasGlued as $gluedModelName => $params2) {
+                            unset($results[$key][$modelName][$gluedModelName]);
+                        }
+                    }
+                }
+            }
+        }
+        // hasMany support
         if (isset($model->hasMany)) {
             foreach ($model->hasMany as $modelName => $params) {
                 if (isset($model->{$modelName}->hasGlued)) {

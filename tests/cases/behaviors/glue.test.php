@@ -4,6 +4,7 @@ App::import('Fixture', 'GluePost');
 App::import('Fixture', 'GluePostGlued');
 App::import('Fixture', 'GluePostGlued2');
 App::import('Fixture', 'GlueUser');
+App::import('Fixture', 'GlueHeader');
 
 class GlueUser extends CakeTestModel{
     public $name = 'GlueUser';
@@ -19,6 +20,20 @@ class GlueUser extends CakeTestModel{
                             );
 }
 
+class GlueHeader extends CakeTestModel{
+    public $name = 'GlueHeader';
+
+    public $actsAs = array('Glue.Glue');
+
+    public $hasOne = array(
+                           'GluePost' => array(
+                                               'className' => 'GluePost',
+                                               'foreignKey' => 'glue_header_id',
+                                               'dependent' => false,
+                                               )
+                           );
+}
+
 class GluePost extends CakeTestModel{
 
     public $name = 'GluePost';
@@ -29,7 +44,11 @@ class GluePost extends CakeTestModel{
                               'GlueUser' => array(
                                                   'className' => 'GlueUser',
                                                   'foreignKey' => 'glue_user_id',
-                                                  )
+                                                  ),
+                              'GlueHeader' => array(
+                                                    'className' => 'GlueHeader',
+                                                    'foreignKey' => 'glue_header_id',
+                                                    ),
                               );
 
     public $hasOne = array(
@@ -49,6 +68,7 @@ class GluePost extends CakeTestModel{
 class GlueTestCase extends CakeTestCase{
 
     public $fixtures = array('plugin.glue.glue_user',
+                             'plugin.glue.glue_header',
                              'plugin.glue.glue_post',
                              'plugin.glue.glue_post_has_one',
                              'plugin.glue.glue_post_glued',
@@ -56,12 +76,14 @@ class GlueTestCase extends CakeTestCase{
 
     function startTest() {
         $this->GlueUser = ClassRegistry::init('GlueUser');
+        $this->GlueHeader = ClassRegistry::init('GlueHeader');
         $this->GluePost = ClassRegistry::init('GluePost');
         $this->GluePostFixture = ClassRegistry::init('GluePostFixture');
     }
 
     function endTest() {
         unset($this->GlueUser);
+        unset($this->GlueHeader);
         unset($this->GluePost);
         unset($this->GluePostFixture);
     }
@@ -82,6 +104,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -128,6 +151,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -152,6 +176,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 401,
                           'glue_user_id' => 401,
+                          'glue_header_id' => 401,
                           'title' => 'No Glue',
                           'body' => 'Glue.Glue Test',
                           'body2' => null,
@@ -365,6 +390,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Update',
                           'body2' => 'Update2',
@@ -412,6 +438,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -431,12 +458,12 @@ class GlueTestCase extends CakeTestCase{
      */
     public function testParentFindHasManySupport2(){
         $query = array();
-        $query['conditions'] = array('GlueUser.id' => 1);
-        $result = $this->GlueUser->find('first', $query);
+        $result = $this->GlueUser->find('all', $query);
 
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -445,7 +472,7 @@ class GlueTestCase extends CakeTestCase{
                           'modified' => '2011-08-23 12:05:02',
                           );
 
-        $this->assertEqual($result['GluePost'][0], $expected);
+        $this->assertEqual($result[0]['GluePost'][0], $expected);
     }
 
     /**
@@ -463,6 +490,7 @@ class GlueTestCase extends CakeTestCase{
         $expected = array(
                           'id' => 1,
                           'glue_user_id' => 1,
+                          'glue_header_id' => 1,
                           'title' => 'Title',
                           'body' => 'Glue.Glue Test',
                           'body2' => 'Glued',
@@ -484,8 +512,113 @@ class GlueTestCase extends CakeTestCase{
                                               'created' => '2011-08-23 17:44:58',
                                               'modified' => '2011-08-23 12:05:02'
                                               ),
+                          'GlueHeader' => array(
+                                                'id' => 1,
+                                                'header' => 'Header',
+                                                'created' => '2011-08-23 17:44:58',
+                                                'modified' => '2011-08-23 12:05:02'
+                                                ),
                           );
 
         $this->assertEqual($result['GluePost'][0], $expected);
+    }
+
+    /**
+     * testParentFindHasOneSupport
+     *
+     * en:
+     * jpn: hasOneでもGlueが発動する
+     */
+    public function testParentFindHasOneSupport(){
+        $query = array();
+        $query['conditions'] = array('GlueHeader.id' => 1);
+        $result = $this->GlueHeader->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'glue_header_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testParentFindHasOneSupport2
+     *
+     * en:
+     * jpn: hasOneでもGlueが発動する
+     */
+    public function testParentFindHasOneSupport2(){
+        $query = array();
+        $result = $this->GlueHeader->find('all', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'glue_header_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+
+        $this->assertEqual($result[0]['GluePost'], $expected);
+    }
+
+    /**
+     * testParentFindHasOneSupport3
+     *
+     * en:
+     * jpn: hasOneでもGlueが発動する。またrecursiveが深く付与されたデータはそのまま表示される
+     */
+    public function testParentFindHasOneSupport3(){
+        $query = array();
+        $query['recursive'] = 2;
+        $query['conditions'] = array('GlueHeader.id' => 1);
+        $result = $this->GlueHeader->find('first', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'glue_header_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+
+                          'GluePostHasOne' => array(
+                                                    'id' => 1,
+                                                    'glue_post_id' => 1,
+                                                    'comment' => 'HasOne Comment',
+                                                    'created' => '2011-08-23 17:44:58',
+                                                    'modified' => '2011-08-23 12:05:02'
+                                                    ),
+                          'GlueUser' => array(
+                                              'id' => 1,
+                                              'username' => 'k1LoW',
+                                              'password' => 'password',
+                                              'created' => '2011-08-23 17:44:58',
+                                              'modified' => '2011-08-23 12:05:02'
+                                              ),
+                          'GlueHeader' => array(
+                                                'id' => 1,
+                                                'header' => 'Header',
+                                                'created' => '2011-08-23 17:44:58',
+                                                'modified' => '2011-08-23 12:05:02'
+                                                ),
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
     }
 }
