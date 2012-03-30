@@ -71,11 +71,11 @@ class GlueBehavior extends ModelBehavior {
                 }
             }
         }
-        $query['fields'] = array_merge($addFields, $query['fields']);
+        $query['fields'] = Set::merge($addFields, $query['fields']);
 
         // glued conditions
         $addConditions = array();
-        foreach ($query['conditions'] as $key => $field) {
+        foreach ($query['conditions'] as $key => $value) {
             foreach ($schema as $k => $v) {
                 if (preg_match('/^' . $k . '$/', $key)
                     || preg_match('/^' . $k . '\s/', $key)
@@ -91,13 +91,14 @@ class GlueBehavior extends ModelBehavior {
                         || preg_match('/^' . $k . '\s/', $key)
                         || preg_match('/^' . $model->alias . '\.' . $k . '$/', $key)
                         || preg_match('/^' . $model->alias . '\.' . $k . '\s/', $key)) {
-                        $addConditions[] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
+                        $addConditions[$gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $key)]  = $value;
                         unset($query['conditions'][$key]);
-                        continue 2;
+                        continue 3;
                     }
                 }
             }
         }
+        $query['conditions'] = Set::merge($addConditions, $query['conditions']);
 
         return $query;
     }
