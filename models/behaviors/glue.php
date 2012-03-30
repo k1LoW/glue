@@ -11,7 +11,6 @@ class GlueBehavior extends ModelBehavior {
      * @param $config
      */
     public function setUp(&$model, $config = array()){
-        $this->model = $model;
         $this->__glue($model);
     }
 
@@ -76,7 +75,7 @@ class GlueBehavior extends ModelBehavior {
         $query['fields'] = Set::merge($addFields, $query['fields']);
 
         // glued conditions
-        $query['conditions'] = $this->recursiveGlueConditions($query['conditions']);
+        $query['conditions'] = $this->recursiveGlueConditions($model, $query['conditions']);
         return $query;
     }
 
@@ -84,9 +83,8 @@ class GlueBehavior extends ModelBehavior {
      * recursiveGlueConditions
      *
      */
-    private function recursiveGlueConditions(&$conditions){
-        $model = $this->model;
-        $schema = $this->model->_schema;
+    private function recursiveGlueConditions(&$model, &$conditions){
+        $schema = $model->_schema;
         $addConditions = array();
         foreach ($conditions as $key => $value) {
             if (is_array($value)) {
