@@ -295,6 +295,29 @@ class GlueTestCase extends CakeTestCase{
     }
 
     /**
+     * testFindGluedCondition
+     *
+     * en:
+     * jpn: GluePost::hasGluedに設定してあるモデルのfieldをconditionsに指定できる
+     */
+    public function testFindGluedCondition(){
+        $query = array();
+        $query['fields'] = array(
+                                 'GluePost.body2',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1,
+                                     'GluePost.body2' => 'Glued',
+                                     );
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'body2' => 'Glued',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
      * testFindUnknownField
      *
      * en:
