@@ -43,39 +43,70 @@ class GlueBehavior extends ModelBehavior {
      */
     public function beforeFind(&$model, $query){
         $this->forceSetPrimaryKey = false;
-        if (!isset($model->hasGlued) || empty($query['fields'])) {
+        if (!isset($model->hasGlued)) {
             return $query;
         }
         $schema = $model->_schema;
 
         // glued fields
         $addFields = array();
-        foreach ($query['fields'] as $key => $field) {
-            if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
-                && !in_array($field, array_keys($schema))) {
+        if (!empty($query['fields'])) {
+            foreach ($query['fields'] as $key => $field) {
+                if (!in_array(preg_replace('/' . $model->alias . '\./' , '', $field), array_keys($schema))
+                    && !in_array($field, array_keys($schema))) {
 
-                if (!in_array($model->primaryKey, $query['fields'])
-                    && !in_array($model->alias . '.' . $model->primaryKey, $query['fields'])) {
-                    $addFields[] = $model->alias . '.' . $model->primaryKey;
-                    $this->forceSetPrimaryKey = true;
+                    if (!in_array($model->primaryKey, $query['fields'])
+                        && !in_array($model->alias . '.' . $model->primaryKey, $query['fields'])) {
+                        $addFields[] = $model->alias . '.' . $model->primaryKey;
+                        $this->forceSetPrimaryKey = true;
+                    }
+
+                    foreach ($model->hasGlued as $gluedModelName => $params) {
+                        $gluedSchema = $model->{$gluedModelName}->_schema;
+                        if (in_array(preg_replace('/^' . $model->alias . '\./' , '', $field), array_keys($gluedSchema))
+                            || in_array($field, array_keys($gluedSchema))) {
+                            $addFields[] = $gluedModelName . '.' . $params['foreignKey'];
+                            $addFields[] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
+                            unset($query['fields'][$key]);
+                            continue;
+                        }
+                    }
                 }
+            }
+            $query['fields'] = Set::merge($addFields, $query['fields']);
+        }
 
-                foreach ($model->hasGlued as $gluedModelName => $params) {
-                    $gluedSchema = $model->{$gluedModelName}->_schema;
-                    if (in_array(preg_replace('/^' . $model->alias . '\./' , '', $field), array_keys($gluedSchema))
-                        || in_array($field, array_keys($gluedSchema))) {
-                        $addFields[] = $gluedModelName . '.' . $params['foreignKey'];
-                        $addFields[] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $field);
-                        unset($query['fields'][$key]);
-                        continue;
+        // glued conditions
+        $query['conditions'] = $this->recursiveGlueConditions($model, $query['conditions']);
+
+        // glued order
+        $newOrder = array();
+        $order = (array)$query['order'][0];
+        foreach ($order as $key => $value) {
+            foreach ($schema as $k => $v) {
+                if (preg_match('/^' . $k . '$/', $value)
+                    || preg_match('/^' . $k . '\s/', $value)
+                    || preg_match('/^' . $model->alias . '\.' . $k . '$/', $value)
+                    || preg_match('/^' . $model->alias . '\.' . $k . '\s/', $value)) {
+                    $newOrder[] = $value;
+                    continue 2;
+                }
+            }
+            foreach ($model->hasGlued as $gluedModelName => $params) {
+                $gluedSchema = $model->{$gluedModelName}->_schema;
+                foreach ($gluedSchema as $k => $v) {
+                    if (preg_match('/^' . $k . '$/', $value)
+                        || preg_match('/^' . $k . '\s/', $value)
+                        || preg_match('/^' . $model->alias . '\.' . $k . '$/', $value)
+                        || preg_match('/^' . $model->alias . '\.' . $k . '\s/', $value)) {
+                        $newOrder[] = $gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $value);
+                        unset($order[$key]);
+                        continue 3;
                     }
                 }
             }
         }
-        $query['fields'] = Set::merge($addFields, $query['fields']);
-
-        // glued conditions
-        $query['conditions'] = $this->recursiveGlueConditions($model, $query['conditions']);
+        $query['order'][0] = $newOrder;
         return $query;
     }
 
@@ -86,6 +117,9 @@ class GlueBehavior extends ModelBehavior {
     private function recursiveGlueConditions(&$model, &$conditions){
         $schema = $model->_schema;
         $addConditions = array();
+        if (!is_array($conditions)) {
+            return $conditions;
+        }
         foreach ($conditions as $key => $value) {
             if (is_array($value)) {
                 $conditions[$key] = $this->recursiveGlueConditions($model, $value);

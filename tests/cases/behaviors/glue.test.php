@@ -295,6 +295,46 @@ class GlueTestCase extends CakeTestCase{
     }
 
     /**
+     * testFindAllOrder
+     *
+     */
+    public function testFindAllOrder(){
+        $query = array();
+        $query['order'] = array('GluePost.body2 DESC');
+        $result = $this->GluePost->find('all', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'glue_header_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+        $this->assertEqual($result[0]['GluePost'], $expected);
+
+        $query = array();
+        $query['order'] = 'GluePost.body2 DESC';
+        $result = $this->GluePost->find('all', $query);
+
+        $expected = array(
+                          'id' => 1,
+                          'glue_user_id' => 1,
+                          'glue_header_id' => 1,
+                          'title' => 'Title',
+                          'body' => 'Glue.Glue Test',
+                          'body2' => 'Glued',
+                          'body3' => 'Glued2',
+                          'created' => '2011-08-23 17:44:58',
+                          'modified' => '2011-08-23 12:05:02',
+                          );
+        $this->assertEqual($result[0]['GluePost'], $expected);
+    }
+
+    /**
      * testFindGluedCondition
      *
      * en:
@@ -307,6 +347,46 @@ class GlueTestCase extends CakeTestCase{
                                  );
         $query['conditions'] = array('GluePost.id' => 1,
                                      'GluePost.body2' => 'Glued',
+                                     );
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'body2' => 'Glued',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+    }
+
+    /**
+     * testFindGluedRecursiveCondition
+     *
+     * en:
+     * jpn: GluePost::hasGluedに設定してあるモデルのfieldをconditionsに指定できる
+     */
+    public function testFindGluedRecursiveCondition(){
+        $query = array();
+        $query['fields'] = array(
+                                 'GluePost.body2',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1,
+                                     'OR' => array('GluePost.body2' => 'Glued',
+                                                   'GluePost.body' => 'Hoge'),
+                                     );
+        $result = $this->GluePost->find('first', $query);
+
+        $expected = array(
+                          'body2' => 'Glued',
+                          );
+
+        $this->assertEqual($result['GluePost'], $expected);
+
+        $query = array();
+        $query['fields'] = array(
+                                 'GluePost.body2',
+                                 );
+        $query['conditions'] = array('GluePost.id' => 1,
+                                     'OR' => array(array('GluePost.body2' => 'Glued'),
+                                                   array('GluePost.body2' => 'Hoge')),
                                      );
         $result = $this->GluePost->find('first', $query);
 
