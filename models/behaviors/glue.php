@@ -2,6 +2,7 @@
 class GlueBehavior extends ModelBehavior {
 
     private $forceSetPrimaryKey;
+    private $model;
 
     /**
      * setUp
@@ -10,6 +11,7 @@ class GlueBehavior extends ModelBehavior {
      * @param $config
      */
     public function setUp(&$model, $config = array()){
+        $this->model = $model;
         $this->__glue($model);
     }
 
@@ -74,8 +76,23 @@ class GlueBehavior extends ModelBehavior {
         $query['fields'] = Set::merge($addFields, $query['fields']);
 
         // glued conditions
+        $query['conditions'] = $this->recursiveGlueConditions($query['conditions']);
+        return $query;
+    }
+
+    /**
+     * recursiveGlueConditions
+     *
+     */
+    private function recursiveGlueConditions(&$conditions){
+        $model = $this->model;
+        $schema = $this->model->_schema;
         $addConditions = array();
-        foreach ($query['conditions'] as $key => $value) {
+        foreach ($conditions as $key => $value) {
+            if (is_array($value)) {
+                $conditions[$key] = $this->recursiveGlueConditions($value);
+                continue;
+            }
             foreach ($schema as $k => $v) {
                 if (preg_match('/^' . $k . '$/', $key)
                     || preg_match('/^' . $k . '\s/', $key)
@@ -92,15 +109,13 @@ class GlueBehavior extends ModelBehavior {
                         || preg_match('/^' . $model->alias . '\.' . $k . '$/', $key)
                         || preg_match('/^' . $model->alias . '\.' . $k . '\s/', $key)) {
                         $addConditions[$gluedModelName . '.' . preg_replace('/^' . $model->alias . '\./' , '', $key)]  = $value;
-                        unset($query['conditions'][$key]);
+                        unset($conditions[$key]);
                         continue 3;
                     }
                 }
             }
         }
-        $query['conditions'] = Set::merge($addConditions, $query['conditions']);
-
-        return $query;
+        return Set::merge($addConditions, $conditions);
     }
 
     /**
