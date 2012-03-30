@@ -88,7 +88,7 @@ class GlueBehavior extends ModelBehavior {
         $addConditions = array();
         foreach ($conditions as $key => $value) {
             if (is_array($value)) {
-                $conditions[$key] = $this->recursiveGlueConditions($value);
+                $conditions[$key] = $this->recursiveGlueConditions($model, $value);
                 continue;
             }
             foreach ($schema as $k => $v) {
