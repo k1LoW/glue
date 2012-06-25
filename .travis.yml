@@ -24,7 +24,6 @@ before_script:
     ));
     " > cakephp/app/config/bootstrap.php
   - mv tests/database.php cakephp/app/config/database.php
-  - cat cakephp/app/config/database.php
   - cd ./cakephp
 
 script:
