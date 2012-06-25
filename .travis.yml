@@ -43,19 +43,23 @@ before_script:
       'encoding' => 'utf8'
     );
     public function __construct() {
-      \$db = (!empty(\$_SERVER['DB'])) ? \$_SERVER['DB'] : 'mysql';
-      if (\$db === 'pgsql') {
-      \$this->default = \$this->test = array(
-      'driver' => 'postgresql',
-      'persistent' => false,
-      'host' => '127.0.0.1',
-      'login' => 'postgres',
-      'password' => '',
-      'database' => 'cakephp_test',
-      'prefix' => '',
-      'encoding' => 'utf8'
-      );
+      \$db = 'mysql';
+      if (!empty(\$_SERVER['DB'])) {
+        \$db = \$_SERVER['DB'];
       }
+      if (\$db === 'pgsql') {
+        \$this->default = \$this->test = array(
+        'driver' => 'postgresql',
+        'persistent' => false,
+        'host' => '127.0.0.1',
+        'login' => 'postgres',
+        'password' => '',
+        'database' => 'cakephp_test',
+        'prefix' => '',
+        'encoding' => 'utf8'
+        );
+      }
+    }
     }" > cakephp/app/config/database.php
   - cd ./cakephp
 
