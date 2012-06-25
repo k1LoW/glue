@@ -23,7 +23,7 @@ before_script:
   - echo "<?php
     class DATABASE_CONFIG {
     public \$default = array(
-      'datasource' => 'mysql',
+      'driver' => 'mysql',
       'persistent' => false,
       'host' => '0.0.0.0',
       'login' => 'root',
@@ -32,7 +32,7 @@ before_script:
       'prefix' => ''
     );
     public \$test = array(
-      'datasource' => 'mysql',
+      'driver' => 'mysql',
       'persistent' => false,
       'host' => '0.0.0.0',
       'login' => 'root',
