@@ -47,7 +47,7 @@ before_script:
     public function __construct() {
       \$db = (!empty(\$_SERVER['DB'])) ? \$_SERVER['DB'] : 'mysql';
       if (\$db === 'pgsql') {
-      \$this->test = array(
+      \$this->default = \$this->test = array(
       'driver' => 'postgresql',
       'persistent' => false,
       'host' => '127.0.0.1',
