@@ -4,7 +4,6 @@ php:
 
 env:
   - DB=mysql
-  - DB=pgsql
 
 before_script:
   - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'CREATE DATABASE cakephp_test;'; fi"
