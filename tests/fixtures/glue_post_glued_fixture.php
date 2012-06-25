@@ -13,7 +13,6 @@ class GluePostGluedFixture extends CakeTestFixture {
 
     var $records = array(
                          array(
-                               'id' => 1,
                                'glue_post_id' => 1,
                                'body' => 'Glued Body',
                                'body2' => 'Glued',
@@ -21,7 +20,6 @@ class GluePostGluedFixture extends CakeTestFixture {
                                'modified' => '2011-08-23 12:05:02'
                                ),
                          array(
-                               'id' => 2,
                                'glue_post_id' => 2,
                                'body' => 'Glued Body',
                                'body2' => 'Glued',

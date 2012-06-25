@@ -170,11 +170,11 @@ class GlueTestCase extends CakeTestCase{
      */
     function testFindNoGlued(){
         $query = array();
-        $query['conditions'] = array('GluePost.id' => 401);
+        $query['conditions'] = array('GluePost.id' => 3);
         $result = $this->GluePost->find('first', $query);
 
         $expected = array(
-                          'id' => 401,
+                          'id' => 3,
                           'glue_user_id' => 401,
                           'glue_header_id' => 401,
                           'title' => 'No Glue',
@@ -300,24 +300,7 @@ class GlueTestCase extends CakeTestCase{
      */
     public function testFindAllOrder(){
         $query = array();
-        $query['order'] = array('GluePost.body2 DESC');
-        $result = $this->GluePost->find('all', $query);
-
-        $expected = array(
-                          'id' => 1,
-                          'glue_user_id' => 1,
-                          'glue_header_id' => 1,
-                          'title' => 'Title',
-                          'body' => 'Glue.Glue Test',
-                          'body2' => 'Glued',
-                          'body3' => 'Glued2',
-                          'created' => '2011-08-23 17:44:58',
-                          'modified' => '2011-08-23 12:05:02',
-                          );
-        $this->assertEqual($result[0]['GluePost'], $expected);
-
-        $query = array();
-        $query['order'] = 'GluePost.body2 DESC';
+        $query['order'] = 'GluePost.id';
         $result = $this->GluePost->find('all', $query);
 
         $expected = array(
@@ -489,6 +472,7 @@ class GlueTestCase extends CakeTestCase{
         $query = array();
         $query['conditions'] = array('GluePost.id' => 1);
         $result = $this->GluePost->find('first', $query);
+        unset($result['GluePost']['modified']);
 
         $expected = array(
                           'id' => 1,
@@ -499,7 +483,6 @@ class GlueTestCase extends CakeTestCase{
                           'body2' => 'Update2',
                           'body3' => 'Glued2',
                           'created' => '2011-08-23 17:44:58',
-                          'modified' => date('Y-m-d H:i:s'),
                           );
 
         $this->assertEqual($result['GluePost'], $expected);
