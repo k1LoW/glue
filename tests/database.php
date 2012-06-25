@@ -1,27 +1,11 @@
 <?php
 class DATABASE_CONFIG {
-    public $default = array(
-                            'driver' => 'mysql',
-                            'persistent' => false,
-                            'host' => '0.0.0.0',
-                            'login' => 'root',
-                            'password' => '',
-                            'database' => 'cakephp_test',
-                            'prefix' => ''
-                            );
-    public $test = array(
-                         'driver' => 'mysql',
-                         'persistent' => false,
-                         'host' => '0.0.0.0',
-                         'login' => 'root',
-                         'password' => '',
-                         'database' => 'cakephp_test',
-                         'prefix' => '',
-                         'encoding' => 'utf8'
-                         );
+    public $default = array();
+    public $test = array();
     public function __construct() {
-        $db = (!empty($_SERVER['DB']) ? $_SERVER['DB'] : 'mysql';
-        if ($db === 'pgsql') {
+        $db = (!empty($_SERVER['DB'])) ? $_SERVER['DB'] : 'mysql';
+        switch ($db) {
+        case 'pgsql':
             $this->default = $this->test = array(
                                                  'driver' => 'postgresql',
                                                  'persistent' => false,
@@ -32,6 +16,19 @@ class DATABASE_CONFIG {
                                                  'prefix' => '',
                                                  'encoding' => 'utf8'
                                                  );
+            break;
+        case 'mysql':
+        default:
+            $this->default = $this->test = array(
+                                                 'driver' => 'mysql',
+                                                 'persistent' => false,
+                                                 'host' => '0.0.0.0',
+                                                 'login' => 'root',
+                                                 'password' => '',
+                                                 'database' => 'cakephp_test',
+                                                 'prefix' => ''
+                                                 );
+
         }
     }
 }
