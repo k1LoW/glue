@@ -81,7 +81,16 @@ class GlueBehavior extends ModelBehavior {
 
         // glued order
         $newOrder = array();
-        $order = (array)$query['order'][0];
+        $order = array();
+
+        // format order
+        foreach ((array)$query['order'][0] as $key => $value) {
+            if (is_numeric($key)) {
+                $order[] = $value;
+            } else {
+                $order[] = $key . ' ' . $value;
+            }
+        }
         foreach ($order as $key => $value) {
             foreach ($schema as $k => $v) {
                 if (preg_match('/^' . $k . '$/', $value)

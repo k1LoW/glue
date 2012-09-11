@@ -26,7 +26,7 @@ class GluePostFixture extends CakeTestFixture {
                                'glue_header_id' => 1,
                                'title' => 'Title2',
                                'body' => 'Glue.Glue Test2',
-                               'created' => '2011-08-23 17:44:58',
+                               'created' => '2011-08-25 17:44:58',
                                'modified' => '2011-08-23 12:05:02'
                                ),
                          array(
